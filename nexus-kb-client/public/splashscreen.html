@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* 基础样式 */
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    main {
+      width: 200px;
+      height: 80px;
+      margin: 0;
+      padding: 0;
+      background-image: url(./logo.png);
+      background-repeat: no-repeat;
+      background-size: 50px 50px;
+      background-position: 40px center;
+      position: relative;
+    }
+    main .loading {
+      margin: 0 0 0 70px;
+      height: 100%;
+      line-height: 80px;
+      box-sizing: content-box;
+      padding-left: 30px;
+    }
+    main .loading span {
+      display: inline-block;
+      animation: dot-up-down 1.5s ease-in-out infinite;
+      animation-delay: calc(.1s*var(--i));
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    main .loading span:first-child {
+      background-color: #2587F7;
+    }
+    main .loading span:nth-child(2) {
+      background-color: #2587F780;
+    }
+    main .loading span:nth-child(3) {
+      background-color: #2587F760;
+    }
+    main .loading span:nth-child(4) {
+      background-color: #2587F740;
+    }
+    main .loading span:nth-child(5) {
+      background-color: #2587F720;
+    }
+    @keyframes dot-up-down {
+      0% {
+        transform: translateY(0px);
+      }
+      20% {
+        transform: translateY(-6px);
+      }
+      40%, 100% {
+        transform: translateY(0px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="loading">
+      <span style="--i:1"></span>
+      <span style="--i:2"></span>
+      <span style="--i:3"></span>
+      <span style="--i:4"></span>
+      <span style="--i:5"></span>
+    </p>
+  </main>
+</body>
+<script>
+
+</script>
+</html>

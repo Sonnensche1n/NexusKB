@@ -1,0 +1,191 @@
+.kb-main {
+  height: 100%;
+  &-sider.n-layout-sider {
+    position: relative;
+    padding: 10px;
+    z-index: 3;
+    .n-layout-toggle-bar {
+      right: -16px;
+      display: none;
+    }
+    &:hover {
+      .n-layout-toggle-bar {
+        display: block;
+      }
+    }
+    &>.n-layout-sider-scroll-container {
+      background-image: url("@/assets/images/floral.png");
+      background-size: contain;
+      // background-repeat: no-repeat;
+      background-position: bottom center;
+      min-width: auto !important;
+      padding: 0 !important;
+      border-radius: 10px;
+      background-color: var(--divider-color);
+    }
+    .kb-logo {
+      height: 80px;
+      overflow: hidden;
+      &-svg {
+        transform: scale(0.2);
+        margin-left: -91.5px;
+        margin-top: -90px;
+      }
+    }
+    .kb-main-option {
+      position: absolute;
+      bottom: 17px;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      .n-button {
+        margin-bottom: 10px;
+        .n-icon {
+          font-size: 18px;
+          color: var(--text-color-3);
+          &:hover {
+            color: var(--text-color-2);
+          }
+        }
+      }
+      .logout {
+        .n-icon {
+          &:hover {
+            color: var(--error-color-hover);
+          }
+        }
+      }
+    }
+  }
+  &-menu.n-menu {
+    .n-menu-item:first-child {
+      margin-top: 0;
+    }
+    .n-menu-item {
+      height: 64px;
+      margin-top: 16px;
+      .n-menu-item-content {
+        display: flex;
+        flex-direction: column;
+        padding: 10px !important;
+        &::before {
+          border-radius: 8px;
+          display: none;
+        }
+        &:hover:not(.n-menu-item-content--selected) {
+          .n-menu-item-content__icon {
+            color: var(--primary-color-hover);
+          }
+        }
+        .n-menu-item-content__icon {
+          margin-right: 0 !important;
+          color: var(--text-color-3);
+          i {
+            font-size: 22px;
+          }
+        }
+      }
+      .n-menu-item-content--selected {
+        .n-menu-item-content__icon {
+          color: var(--primary-color);
+        }
+      }
+    }
+  }
+  &-menu.n-menu--collapsed {
+    .n-menu-item:first-child {
+      margin-top: 0;
+    }
+    .n-menu-item {
+      margin-top: 10px;
+      .n-menu-item-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        .n-menu-item-content-header {
+          display: none;
+        }
+      }
+    }
+  }
+
+  &-sider.kb-navi-primary {
+    .n-layout-sider-scroll-container {
+      background-color: var(--primary-color);
+      background-image: url("@/assets/images/floral2.png");
+      .n-menu-item-content--selected::before {
+        display: block;
+        background-color: #00000020 !important;
+      }
+      .n-menu-item-content:not(.n-menu-item-content--disabled):hover::before {
+        display: block;
+        background-color: #00000010 !important;
+      }
+      .n-menu-item-content:not(.n-menu-item-content--selected) {
+        .n-menu-item-content__icon {
+          color: rgba(255, 255, 255, 0.95) !important;
+        }
+        &:hover {
+          .n-menu-item-content__icon {
+            color: rgba(255, 255, 255, 0.95) !important;
+          }
+        }
+      }
+      .n-menu-item-content--selected {
+        .n-menu-item-content__icon {
+          color: #fff !important;
+        }
+      }
+      .kb-main-option {
+        .n-button {
+          .n-icon {
+            color: rgba(255, 255, 255, 0.65) !important;
+          }
+          &:hover {
+            .n-icon {
+              color: rgba(255, 255, 255, 0.95) !important;
+            }
+          }
+        }
+        .logout {
+          .n-icon {
+            &:hover {
+              color: var(--error-color-hover) !important;
+            }
+          }
+        }
+      }
+    }
+    .kb-logo-svg {
+      .logo-1 {
+        fill: #ffffff72;
+      }
+      .logo-2 {
+        fill: #ffffff82;
+      }
+      .logo-3 {
+        fill: #ffffff;
+      }
+    }
+  }
+  &-sider.n-layout-sider--collapsed {
+    padding-left: 0;
+    .n-layout-toggle-bar {
+      display: block;
+    }
+    .kb-main-option {
+      display: none;
+    }
+  }
+}
+
+.kb-app.dark .kb-main {
+  &-sider.n-layout-sider {
+    &>.n-layout-sider-scroll-container {
+      background-image: url("@/assets/images/floral2.png");
+    }
+  }
+}

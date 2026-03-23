@@ -1,0 +1,23 @@
+[package]
+name = "nexus-kb-client"
+version = "0.1.8"
+description = "WENKB知识库"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "wenkb_client_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.0.0-rc", features = [] }
+
+[dependencies]
+tauri = { version = "2.0.0-rc", features = ["devtools"] }
+tauri-plugin-shell = "2.0.0-rc"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+command-group = "5.0.1"
+tauri-plugin-http = "2.0.0-rc.1"

@@ -1,0 +1,11 @@
+{
+    "framework": "pytorch",
+    "task": "sentence-embedding",
+    "pipeline": {
+        "type": "sentence-embedding"
+    },
+    "model": {
+        "type": "m3e-small",
+        "language": "zh"
+    }
+}

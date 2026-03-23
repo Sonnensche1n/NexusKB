@@ -1,0 +1,61 @@
+.window-titlebar {
+  height: 30px;
+  user-select: none;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20241231;
+  cursor: default;
+  padding-right: 10px;
+  gap: 5px;
+}
+.window-titlebar-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 10px;
+  height: 10px;
+  user-select: none;
+  -webkit-user-select: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.window-titlebar-button:first-child {
+  background-color: var(--warning-color);
+  &:hover {
+    background-color: var(--warning-color-hover);
+  }
+}
+.window-titlebar-button:nth-child(2) {
+  background-color: var(--success-color);
+  &:hover {
+    background-color: var(--success-color-hover);
+  }
+}
+.window-titlebar-button:last-child {
+  background-color: var(--error-color);
+  &:hover {
+    background-color: var(--error-color-hover);
+  }
+}
+
+.kb-app {
+  .kb-repos.n-card > .n-card-header, .kb-docset.n-card > .n-card-header {
+    padding-top: 30px;
+  }
+  .kb-dataset .kb-dataset-header, .kb-qanswer .kb-qanswer-header {
+    padding-top: 6px;
+  }
+  .kb-repos-setting {
+    padding-top: 10px;
+  }
+  .kb-repos-detail {
+    .kb-dataset-header, .kb-qanswer-header, .kb-repos-setting {
+      padding-top: 10px;
+    }
+  }
+}

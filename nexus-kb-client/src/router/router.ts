@@ -70,4 +70,16 @@ const router = createRouter({
     history: createWebHashHistory(),
     routes,
 })
+
+import useUserStore from '../store/user'
+
+router.beforeEach((to: any, from: any, next: any) => {
+    const userStore = useUserStore()
+    if (to.path !== '/login' && !userStore.token) {
+        next('/login')
+    } else {
+        next()
+    }
+})
+
 export default router

@@ -29,7 +29,23 @@ def get_related_docs_by_repos_id(reposId:str, question:str, setting: ReposSettin
   vector_store = get_or_build_vector_db(reposId)
   if (vector_store is None):
     return None
-  return get_related_docs_with_score(vector_store=vector_store, question=question, k=setting.topK)
+  
+  # 优先尝试获取带有分数的普通检索结果
+  related_docs_with_score_ = get_related_docs_with_score(vector_store=vector_store, question=question, k=setting.topK)
+  
+  # 增加 MMR 检索补充（如果配置支持或者为了混合结果）
+  try:
+    mmr_docs = vector_store.max_marginal_relevance_search(question, k=setting.topK, fetch_k=setting.topK * 3)
+    # 将 MMR 结果合并，如果没有 score 则默认给一个合理的通过阈值的分数（或者通过原本的检索匹配分数）
+    existing_docs_contents = [doc.page_content for doc, _ in related_docs_with_score_]
+    for doc in mmr_docs:
+      if doc.page_content not in existing_docs_contents:
+        # MMR 补充的文档，为了能够通过阈值过滤，赋予一个略低于阈值的基础分 (这里越小越相似，因此给个相对安全的距离)
+        related_docs_with_score_.append((doc, setting.smlrTrval - 0.01 if setting.smlrTrval else 0.5))
+  except Exception as e:
+    logger.error(f"MMR 检索失败: {e}")
+
+  return related_docs_with_score_
 
 def get_related_docs_with_score(vector_store, question:str, k:int = TOP_K):
   return vector_store.similarity_search_with_score(question, k)

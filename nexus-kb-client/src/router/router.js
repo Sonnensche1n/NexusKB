@@ -73,7 +73,7 @@ const router = createRouter({
 
 import useUserStore from '../store/user'
 
-router.beforeEach((to: any, from: any, next: any) => {
+router.beforeEach((to, from, next) => {
     const userStore = useUserStore()
     if (to.path !== '/login' && !userStore.token) {
         next('/login')

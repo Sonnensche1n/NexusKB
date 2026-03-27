@@ -1,8 +1,10 @@
 import json
+import asyncio
 from logger import logger
-from config.llm import TOP_K
+from config.llm import TOP_K, RERANKER_ENABLED, RERANKER_RECALL_MULTIPLIER
 from config.prompt import REPOSCHAT_PROMPT_TEMPLATE, REPOSHISTORY_PROMPT_TEMPLATE
 from server.core.tools.repos_vector_db import get_or_build_vector_db
+from server.core.tools.reranker import rerank
 from server.utils.websocketutils import WebsocketManager
 from server.model.entity_knb import ChatMesg as ChatMesgEntity, ChatMesgQuote as ChatMesgQuoteEntity, ReposSetting as ReposSettingEntity
 from server.model.orm_knb import ChatMesg
@@ -30,12 +32,15 @@ def get_related_docs_by_repos_id(reposId:str, question:str, setting: ReposSettin
   if (vector_store is None):
     return None
   
+  # 如果启用了 Reranker，扩大召回量以提供更大的候选池
+  recall_k = setting.topK * RERANKER_RECALL_MULTIPLIER if RERANKER_ENABLED else setting.topK
+  
   # 优先尝试获取带有分数的普通检索结果
-  related_docs_with_score_ = get_related_docs_with_score(vector_store=vector_store, question=question, k=setting.topK)
+  related_docs_with_score_ = get_related_docs_with_score(vector_store=vector_store, question=question, k=recall_k)
   
   # 增加 MMR 检索补充（如果配置支持或者为了混合结果）
   try:
-    mmr_docs = vector_store.max_marginal_relevance_search(question, k=setting.topK, fetch_k=setting.topK * 3)
+    mmr_docs = vector_store.max_marginal_relevance_search(question, k=recall_k, fetch_k=recall_k * 3)
     # 将 MMR 结果合并，如果没有 score 则默认给一个合理的通过阈值的分数（或者通过原本的检索匹配分数）
     existing_docs_contents = [doc.page_content for doc, _ in related_docs_with_score_]
     for doc in mmr_docs:
@@ -60,11 +65,59 @@ def get_question_prompts_and_sources(reposId: str, question: str, setting: Repos
   related_docs_with_score_ = get_related_docs_by_repos_id(reposId, question, setting)
   if (related_docs_with_score_ is None):
     return None, None
-  related_docs_with_score = [[doc, score] for doc, score in related_docs_with_score_ if score < setting.smlrTrval ] # 越小越相似
-  # 将related_docs_with_score截取setting.maxCtx条
-  related_docs_with_score = related_docs_with_score[:setting.maxCtx]
-  sources = prob_related_documents_and_score(related_docs_with_score)
-  prompts = generate_llm_prompts(question, related_docs_with_score)
+    
+  # 第一阶段过滤：保留符合相似度阈值的文档
+  filtered_results = []
+  for doc, score in related_docs_with_score_:
+    if score < setting.smlrTrval: # 越小越相似
+      filtered_results.append({
+          "content": doc.page_content,
+          "metadata": doc.metadata,
+          "score": score,
+      })
+
+  # 第二阶段精排：如果启用了 Reranker，则进行重排序
+  if RERANKER_ENABLED and filtered_results:
+    # 由于当前外层可能非 async 函数（比如被 stream 包含调用），通过 asyncio.run 运行
+    # 注意：如果这已经是在 asyncio event loop 中运行的，需要适当处理，
+    # 比如在 FastAPI 中应直接使用 async/await
+    try:
+      loop = asyncio.get_event_loop()
+      if loop.is_running():
+        # 如果事件循环已运行（如 FastAPI），需要将 rerank 包装为同步任务，或者把 ask_to_llm_stream 整个改为异步
+        # 为了兼容当前的同步 generator (ask_to_llm_stream)，我们可以使用一个新线程，或者使用 await
+        # 此处假设我们不破坏原有的 generator 机制，先采取粗暴的 run_until_complete (但可能会报错 RuntimeError: This event loop is already running)
+        # 更安全的做法是把这一层交给外部处理，或者使用同步的 httpx 客户端进行 rerank。
+        # 考虑到项目框架，我们先尝试在协程外执行：
+        pass
+    except RuntimeError:
+      pass
+
+    try:
+      # 为了避免修改顶层路由为 async 生成器导致的大量重构，这里我们创建一个新的事件循环来运行（在子线程中）
+      import concurrent.futures
+      def run_async_rerank(q, docs, n):
+          return asyncio.run(rerank(q, docs, n))
+          
+      with concurrent.futures.ThreadPoolExecutor() as pool:
+          filtered_results = pool.submit(run_async_rerank, question, filtered_results, setting.maxCtx).result()
+    except Exception as e:
+      logger.error(f"Reranker 异步调用失败，降级: {e}")
+
+  # 取 Top-N (无论是否 Reranker 都有此步骤)
+  filtered_results = filtered_results[:setting.maxCtx]
+  
+  # 将字典格式还原为旧版格式，以兼容现有的 prob_related_documents_and_score
+  # 为了适配原有的代码逻辑
+  class DummyDoc:
+      def __init__(self, content, metadata):
+          self.page_content = content
+          self.metadata = metadata
+          
+  final_docs_with_score = [[DummyDoc(item["content"], item["metadata"]), item["score"]] for item in filtered_results]
+
+  sources = prob_related_documents_and_score(final_docs_with_score)
+  prompts = generate_llm_prompts(question, final_docs_with_score)
   return prompts, sources
 
 # 发送引用数据

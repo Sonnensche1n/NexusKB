@@ -8,6 +8,7 @@ from chromadb.api.types import ID, OneOrMany, Where, WhereDocument
 from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
 from config.common import VECTOR_STORE_FILE_DIR # 向量存储的位置
+from config.llm import TOP_K
 from .file_tools import create_dir_if_not_exist
 from .llm_client_tools import get_repos_embedding_function
 from server.exception.exception import BaseBusiException

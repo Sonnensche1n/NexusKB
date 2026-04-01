@@ -149,3 +149,13 @@ class ReposSetting(Base):
   llmTptur = Column(Float, name= 'llm_tptur')
   smlrTrval = Column(Float, name= 'smlr_trval')
   topK = Column(Integer, name= 'top_k')
+
+class DatasetFingerprint(Base):
+    """文档指纹表，用于增量索引"""
+    __tablename__ = "dataset_fingerprint"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source_path = Column(String(1024), nullable=False, unique=True, index=True, comment="文档路径/标识")
+    fingerprint = Column(String(32), nullable=False, comment="内容 MD5 指纹")
+    created_at = Column(String, nullable=False, comment="首次索引时间")
+    updated_at = Column(String, nullable=False, comment="最近更新时间")

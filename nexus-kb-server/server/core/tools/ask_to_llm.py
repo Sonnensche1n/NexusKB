@@ -1,10 +1,14 @@
 import json
 import asyncio
 from logger import logger
-from config.llm import TOP_K, RERANKER_ENABLED, RERANKER_RECALL_MULTIPLIER
+from config.llm import TOP_K, RERANKER_ENABLED, RERANKER_RECALL_MULTIPLIER, HYDE_ENABLED, HYBRID_SEARCH_ENABLED
 from config.prompt import REPOSCHAT_PROMPT_TEMPLATE, REPOSHISTORY_PROMPT_TEMPLATE
 from server.core.tools.repos_vector_db import get_or_build_vector_db
 from server.core.tools.reranker import rerank
+from server.core.tools.hyde import generate_hypothetical_document
+from server.core.tools.bm25_retriever import BM25Retriever
+from server.core.tools.hybrid_search import rrf_fusion
+from server.core.tools.post_processor import post_process_results
 from server.utils.websocketutils import WebsocketManager
 from server.model.entity_knb import ChatMesg as ChatMesgEntity, ChatMesgQuote as ChatMesgQuoteEntity, ReposSetting as ReposSettingEntity
 from server.model.orm_knb import ChatMesg
@@ -38,17 +42,59 @@ def get_related_docs_by_repos_id(reposId:str, question:str, setting: ReposSettin
   # 优先尝试获取带有分数的普通检索结果
   related_docs_with_score_ = get_related_docs_with_score(vector_store=vector_store, question=question, k=recall_k)
   
-  # 增加 MMR 检索补充（如果配置支持或者为了混合结果）
-  try:
-    mmr_docs = vector_store.max_marginal_relevance_search(question, k=recall_k, fetch_k=recall_k * 3)
-    # 将 MMR 结果合并，如果没有 score 则默认给一个合理的通过阈值的分数（或者通过原本的检索匹配分数）
-    existing_docs_contents = [doc.page_content for doc, _ in related_docs_with_score_]
-    for doc in mmr_docs:
-      if doc.page_content not in existing_docs_contents:
-        # MMR 补充的文档，为了能够通过阈值过滤，赋予一个略低于阈值的基础分 (这里越小越相似，因此给个相对安全的距离)
-        related_docs_with_score_.append((doc, setting.smlrTrval - 0.01 if setting.smlrTrval else 0.5))
-  except Exception as e:
-    logger.error(f"MMR 检索失败: {e}")
+  # 格式化向量检索结果
+  vector_results = []
+  for doc, score in related_docs_with_score_:
+      vector_results.append({
+          "content": doc.page_content,
+          "metadata": doc.metadata,
+          "score": score,
+          "retrieval_type": "vector",
+      })
+
+  # 【新增】BM25 检索与 RRF 融合
+  if HYBRID_SEARCH_ENABLED:
+      try:
+          # 注意：由于缺少独立缓存，这里每次动态获取全量文本进行 BM25 索引构建（存在性能瓶颈，应作为二期优化）
+          all_docs_dict = vector_store.get()
+          bm25_retriever = BM25Retriever()
+          bm25_docs = []
+          
+          # ChromaDB get() 返回字典结构：{'documents': [...], 'metadatas': [...]}
+          if all_docs_dict and "documents" in all_docs_dict and all_docs_dict["documents"]:
+              for idx, content in enumerate(all_docs_dict["documents"]):
+                  metadata = all_docs_dict["metadatas"][idx] if "metadatas" in all_docs_dict and all_docs_dict["metadatas"] else {}
+                  bm25_docs.append({"content": content, "metadata": metadata})
+
+          if bm25_docs:
+              bm25_retriever.build_index(bm25_docs)
+              bm25_results = bm25_retriever.search(question, top_k=recall_k)
+          else:
+              bm25_results = []
+
+          # RRF 融合
+          fused_results = rrf_fusion(
+              result_lists=[vector_results, bm25_results],
+              top_k=recall_k,
+          )
+          
+          # 兼容原有的返回结构
+          class DummyDoc:
+              def __init__(self, content, metadata):
+                  self.page_content = content
+                  self.metadata = metadata
+          
+          related_docs_with_score_ = []
+          for item in fused_results:
+              # 对于 RRF，分数越高越好，但原有代码中 score 是距离（越小越好）。
+              # 因此如果使用了混合检索，我们需要暂时跳过原有逻辑中根据 smlrTrval 的粗暴过滤
+              related_docs_with_score_.append((DummyDoc(item["content"], item["metadata"]), -item["rrf_score"]))
+              
+      except Exception as e:
+          logger.error(f"[HybridSearch] 混合检索失败，降级为向量检索: {e}")
+  else:
+      # 如果未启用，则保持之前的向量搜索逻辑（不修改 related_docs_with_score_）
+      pass
 
   return related_docs_with_score_
 
@@ -59,10 +105,28 @@ def generate_llm_prompts(question: str, related_docs_with_score) -> str:
   context = '\n'.join([doc.page_content for doc, score in related_docs_with_score])
   return REPOSCHAT_PROMPT_TEMPLATE.replace('{question}', question).replace('{context}', context)
 
-def get_question_prompts_and_sources(reposId: str, question: str, setting: ReposSettingEntity):
+def get_question_prompts_and_sources(reposId: str, question: str, setting: ReposSettingEntity, llm_client=None):
   if (question is None or question == ''):
     return None, None
-  related_docs_with_score_ = get_related_docs_by_repos_id(reposId, question, setting)
+    
+  # ==========================================
+  # 1. HyDE 查询扩展
+  # ==========================================
+  search_query = question
+  if HYDE_ENABLED and llm_client:
+      try:
+          import concurrent.futures
+          def run_async_hyde(q, client):
+              return asyncio.run(generate_hypothetical_document(q, client, enabled=True))
+              
+          with concurrent.futures.ThreadPoolExecutor() as pool:
+              search_query = pool.submit(run_async_hyde, question, llm_client).result()
+      except Exception as e:
+          logger.error(f"[HyDE] 扩展查询失败: {e}")
+          search_query = question
+          
+  # 使用扩展后的 query 进行检索
+  related_docs_with_score_ = get_related_docs_by_repos_id(reposId, search_query, setting)
   if (related_docs_with_score_ is None):
     return None, None
     
@@ -106,6 +170,14 @@ def get_question_prompts_and_sources(reposId: str, question: str, setting: Repos
 
   # 取 Top-N (无论是否 Reranker 都有此步骤)
   filtered_results = filtered_results[:setting.maxCtx]
+  
+  # 新增：后处理（去重 + 按文档位置重排）
+  filtered_results = post_process_results(
+      chunks=filtered_results,
+      deduplicate=True,
+      reorder=True,
+      similarity_threshold=0.85,
+  )
   
   # 将字典格式还原为旧版格式，以兼容现有的 prob_related_documents_and_score
   # 为了适配原有的代码逻辑
@@ -189,7 +261,7 @@ def ask_to_llm_stream(setting: ReposSettingEntity, chatMesg: ChatMesgEntity, que
       return message
   prompts, sources = None, None
   try:
-    prompts, sources = get_question_prompts_and_sources(chatMesg.reposId, question, setting)
+    prompts, sources = get_question_prompts_and_sources(chatMesg.reposId, question, setting, llm_client=client)
   except Exception as e:
     logger.error(e)
     yield message_error_to_json(str(e))

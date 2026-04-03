@@ -23,13 +23,21 @@ NexusKB 是一款基于大语言模型（LLM）的下一代知识管理工具，
 
 ### 1. 前端启动 (NexusKB Client)
 
-确保你已经安装了 [Node.js](https://nodejs.org/) 和 [Rust](https://www.rust-lang.org/) 环境。
+确保你已经安装了 [Node.js](https://nodejs.org/)。
+如果想以桌面原生应用形式启动，你需要安装 [Rust](https://www.rust-lang.org/tools/install)。
 
 ```bash
 cd nexus-kb-client
 npm install
+
+# 选项 A：在浏览器中预览（速度快，适合调试 UI）
 npm run dev
+
+# 选项 B：作为独立桌面应用启动（需要 Rust 环境）
+npm run tauri dev
 ```
+> **如何结束桌面端进程？**
+> 在启动了 `npm run tauri dev` 的终端中，按 `Ctrl + C` 即可强制停止进程并关闭窗口。
 
 ### 2. 后端启动 (NexusKB Server)
 

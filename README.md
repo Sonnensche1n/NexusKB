@@ -37,7 +37,7 @@ npm run dev
 
 ```bash
 cd nexus-kb-server
-uv sync
+uv sync --python 3.11
 uv run app.py
 ```
 

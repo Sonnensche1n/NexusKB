@@ -7,6 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    FileViewer: typeof import('./src/components/custom/FileViewer.vue')['default']
     Logo: typeof import('./src/components/Logo.vue')['default']
     MND: typeof import('./src/components/MND.vue')['default']
     NAlert: typeof import('naive-ui')['NAlert']

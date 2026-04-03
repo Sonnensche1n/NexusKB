@@ -33,12 +33,12 @@ npm run dev
 
 ### 2. 后端启动 (NexusKB Server)
 
-确保你已经安装了 Python 3.10+。
+确保你已经安装了 [uv](https://docs.astral.sh/uv/)，并使用 Python 3.11+。
 
 ```bash
 cd nexus-kb-server
-pip install -r requirements.txt
-python app.py
+uv sync
+uv run app.py
 ```
 
 ## 🛠️ 技术栈

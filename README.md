@@ -26,19 +26,7 @@ NexusKB 是一款基于大语言模型（LLM）的下一代知识管理工具，
 确保你已经安装了 [Node.js](https://nodejs.org/)。
 如果想以桌面原生应用形式启动，你需要安装 [Rust](https://www.rust-lang.org/tools/install)。
 
-### 4. 使用 Docker 部署后端 (可选)
-
-如果你不想在本地安装 Python 环境，你可以使用 Docker 一键启动后端。
-
 ```bash
-cd nexus-kb-server
-
-# 构建 Docker 镜像
-docker build -t nexus-kb-server .
-
-# 运行容器，将本地 16088 端口映射到容器内
-docker run -d -p 16088:16088 --name nexus-kb nexus-kb-server
-```
 cd nexus-kb-client
 npm install
 
@@ -59,6 +47,20 @@ npm run tauri dev
 cd nexus-kb-server
 uv sync --python 3.11
 uv run app.py
+```
+
+### 3. 使用 Docker 部署后端 (可选)
+
+如果你不想在本地安装 Python 环境，你可以使用 Docker 一键启动后端。
+
+```bash
+cd nexus-kb-server
+
+# 构建 Docker 镜像
+docker build -t nexus-kb-server .
+
+# 运行容器，将本地 16088 端口映射到容器内
+docker run -d -p 16088:16088 --name nexus-kb nexus-kb-server
 ```
 
 ## 🛠️ 技术栈

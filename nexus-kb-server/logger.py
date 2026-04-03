@@ -8,7 +8,12 @@
 """
 import colorlog
 import logging
+import os
 from logging.handlers import TimedRotatingFileHandler
+
+# 确保日志目录存在
+log_dir = 'resources/logs'
+os.makedirs(log_dir, exist_ok=True)
 
 # 创建logger对象
 logger = logging.getLogger(__name__)

@@ -18,6 +18,11 @@ __pycache__/
 *$py.class
 *.so
 
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
 # Distribution / packaging
 build/
 develop-eggs/

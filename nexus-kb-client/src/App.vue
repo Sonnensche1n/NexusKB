@@ -26,7 +26,7 @@
   import { invoke } from '@tauri-apps/api/core'
   import { Window } from '@tauri-apps/api/window'
   import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
-  import { defineComponent, getCurrentInstance, ref } from 'vue'
+  import { defineComponent, getCurrentInstance, ref, onMounted } from 'vue'
   import { useTheme } from '@/mixin/app'
   import MND from './components/MND.vue'
   
@@ -40,17 +40,25 @@
       const key = ref(0)
       
       // 判断是否在 Tauri 环境中运行
-      const isTauri = typeof window !== 'undefined' && window.__TAURI__ !== undefined
+      const isTauri = ref(false)
+      
+      onMounted(() => {
+        isTauri.value = typeof window !== 'undefined' && window.__TAURI_INTERNALS__ !== undefined
+      })
       
       let appWindow = null
       
-      if (isTauri) {
-        const appWebview = getCurrentWebviewWindow()
-        appWebview.listen('on-server-started', (event) => {
-          console.log(event.payload)
-          key.value = 1
-        })
-        appWindow = new Window('main')
+      try {
+        if (typeof window !== 'undefined' && window.__TAURI_INTERNALS__ !== undefined) {
+          const appWebview = getCurrentWebviewWindow()
+          appWebview.listen('on-server-started', (event) => {
+            console.log(event.payload)
+            key.value = 1
+          })
+          appWindow = new Window('main')
+        }
+      } catch (e) {
+        console.warn('Not running in Tauri environment or failed to init window', e)
       }
       
       return {

@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+.venv/
+.venv_*
+venv/
+env/
+
+*.db
+*.sqlite
+*.sqlite3
+
+resources/logs/
+*.log
+
+# Tauri and Node
+node_modules/
+dist/
+src-tauri/target/

@@ -1,5 +1,14 @@
 import axios from 'axios'
-import { baseURL } from '@/config'
+
+// 扩展 Window 接口以包含 Naive UI 的 $message
+declare global {
+  interface Window {
+    $message: any;
+  }
+}
+
+// 使用 Vite 的环境变量代替硬编码的 config
+const baseURL = (import.meta as any).env?.VITE_APP_API_URL || 'http://127.0.0.1:16088'
 
 // 设置baseUrl
 axios.defaults.baseURL = baseURL

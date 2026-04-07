@@ -53,8 +53,7 @@ def load_vector_store(reposId:str):
     chroma = Chroma(collection_name=reposId, embedding_function=embedding, client=client)
     return chroma
   except Exception as e:
-    import traceback
-    traceback.print_exc()
+    logger.exception(f"Failed to query distinct metadata from ChromaDB: {e}")
     return None
   finally:
     pass

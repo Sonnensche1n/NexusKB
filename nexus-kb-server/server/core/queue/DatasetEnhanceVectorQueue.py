@@ -56,8 +56,7 @@ def consumer():
     try:
       start_dataset_to_enhance(dtsetId=dtsetId, type=item.type)
     except Exception as e:
-      logger.info(f"Consume Failed {dtsetId}-{type}")
-      traceback.print_exc()
+      logger.exception(f"Consume Failed {dtsetId}-{type}")
       update_status(dtsetId, type, 'error', DatasetIndexError(dtsetId=dtsetId, idxTyp=type, errInf=str(e))) # type: index, precis, qanswer, triplet
     else:
       logger.info(f"Consumed {dtsetId}-{type}")

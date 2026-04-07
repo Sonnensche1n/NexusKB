@@ -35,9 +35,7 @@ def upgrade_db():
     execute_ddl(current_version, DB_SCHEMA_VERSION)
     execute_dml(current_version, DB_SCHEMA_VERSION)
   except Exception as e: # 失败还需要进一步处理回滚等操作，暂时不处理
-    traceback.print_exc()
-    logger.error(e)
-    logger.error('升级数据库失败，请检查日志。')
+    logger.exception('升级数据库失败，请检查日志。')
   else:
     logger.info('升级数据库成功')
     with session_scope() as session:

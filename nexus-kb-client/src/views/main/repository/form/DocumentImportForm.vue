@@ -38,7 +38,6 @@
 <script>
 import { defineComponent, getCurrentInstance, inject, ref } from 'vue'
 import { } from 'naive-ui'
-import useUserStore from '@/store/user'
 import { baseURL } from '@/config'
 export default defineComponent({
   components: {
@@ -94,7 +93,7 @@ export default defineComponent({
       fileList,
       reposId: props.reposId,
       catalogId: props.catalogId,
-      token: useUserStore().getToken,
+      token: 'local_token',
       onUploadFinish, onUploadError, onFileListUpdate,
       ok
     }

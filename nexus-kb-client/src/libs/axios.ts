@@ -1,5 +1,4 @@
 import axios from 'axios'
-import useUserStore from '@/store/user'
 import { baseURL } from '@/config'
 
 // 设置baseUrl
@@ -11,8 +10,7 @@ axios.defaults.timeout = 30000
 // 请求拦截器
 axios.interceptors.request.use(
   config => {
-    const token = useUserStore().getToken
-    token && (config.headers['token'] = token)
+    config.headers['token'] = 'local_token'
     return config
   },
   error => {
@@ -129,7 +127,7 @@ export default {
         method: 'post',
         responseType: 'stream',
         headers: {
-          token: useUserStore().getToken,
+          token: 'local_token',
           'Content-Type': axios.defaults.headers['Content-Type'],
         },
         body: JSON.stringify(data),

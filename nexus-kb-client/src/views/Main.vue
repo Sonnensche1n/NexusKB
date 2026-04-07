@@ -34,7 +34,6 @@
   import { THEME_TYPE_KEY, DEFAULT_THEME_TYPE } from '@/libs/enum'
   import { useTheme } from '@/mixin/app'
   import EventBus from '@/libs/eventbus'
-  import useUserStore from '@/store/user'
   import Logo from '@/components/Logo.vue'
 
   const menuOptions = [
@@ -71,7 +70,6 @@
     },
     setup() {
       const router = useRouter()
-      const userStore = useUserStore()
       const dialog = useDialog()
       const { naviType } = useTheme()
       const getKeyByPath = (path) => {

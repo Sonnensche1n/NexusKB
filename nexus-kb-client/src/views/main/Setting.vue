@@ -27,8 +27,6 @@
     </n-layout-sider>
     <n-layout-content content-style="padding: 24px;">
       <theme v-if="activeKey==='theme'" />
-      <team v-if="activeKey==='team'" />
-      <user v-if="activeKey === 'userinfo'" />
       <llm v-if="activeKey === 'llm'" />
     </n-layout-content>
   </n-layout>
@@ -39,8 +37,6 @@
   import { } from 'naive-ui'
   import { renderIconfontIcon } from '@/libs/utils'
   import Theme from './setting/Theme.vue'
-  import Team from './setting/Team.vue'
-  import User from './setting/User.vue'
   import Llm from './setting/Llm.vue'
   const menuOptions = [
     {
@@ -56,7 +52,7 @@
   ]
   export default defineComponent({
     components: {
-      Theme, Team, User, Llm
+      Theme, Llm
     },
     data() {
       return {

@@ -1,5 +1,4 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-const Login = () => import('../views/Login.vue')
 const Main = () => import('../views/Main.vue')
 const Chat = () => import('../views/main/Chat.vue')
 const Repository = () => import('../views/main/Repository.vue')
@@ -12,10 +11,6 @@ const Docset = () => import('../views/main/Docset.vue')
 const DocsetDetail = () => import('../views/main/docset/Detail.vue')
 
 const routes = [
-    {
-        path: '/login',
-        component: Login
-    },
     {
         path: '/',
         redirect: '/main/chat',
@@ -69,17 +64,6 @@ const routes = [
 const router = createRouter({
     history: createWebHashHistory(),
     routes,
-})
-
-import useUserStore from '../store/user'
-
-router.beforeEach((to, from, next) => {
-    const userStore = useUserStore()
-    if (to.path !== '/login' && !userStore.token) {
-        next('/login')
-    } else {
-        next()
-    }
 })
 
 export default router

@@ -45,7 +45,6 @@
 </template>
 <script>
   import { defineComponent, ref, getCurrentInstance } from 'vue'
-  import useUserStore from '@/store/user'
   import { useDialog, useMessage } from 'naive-ui'
   import { isEmpty, deepCopy, uuid } from '@/libs/tools'
   import Content from '@/views/main/chat/Content.vue'

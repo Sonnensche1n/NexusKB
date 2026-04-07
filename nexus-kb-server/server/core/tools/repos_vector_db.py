@@ -12,6 +12,7 @@ from config.llm import TOP_K
 from .file_tools import create_dir_if_not_exist
 from .llm_client_tools import get_repos_embedding_function
 from server.exception.exception import BaseBusiException
+from logger import logger
 
 # 知识库向量文件存储库
 VECTOR_STORE_DICT = {}

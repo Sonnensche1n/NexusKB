@@ -30,7 +30,7 @@ NexusKB 是一款基于大语言模型（LLM）的下一代知识管理工具，
    GIT_LFS_SKIP_SMUDGE=1 git clone <你的项目仓库地址>
    cd NexusKB
    ```
-2. **手动下载模型**：前往国内镜像站（如 [魔搭社区 ModelScope](https://modelscope.cn/models/moka-ai/m3e-base/files) 或 HF-Mirror）下载 `m3e` 模型文件，然后将下载的模型直接放入项目中对应的模型存放目录。
+2. **手动下载模型**：前往国内镜像站（如 [魔搭社区 ModelScope](https://modelscope.cn/models/moka-ai/m3e-base/files) 或 HF-Mirror）下载 `m3e` 模型文件，然后将下载的模型内容直接放入项目对应的模型存放目录：`nexus-kb-server/resources/model/m3e/`（如果使用的是 m3e-small，则放到 `m3e-small` 子目录下）。
 
 **备选方案：配置代理后拉取**
 如果你有稳定的代理，也可以在克隆后配置 Git 代理并使用 LFS 拉取：

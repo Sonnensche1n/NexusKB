@@ -61,6 +61,15 @@ npm run tauri dev
 
 确保你已经安装了 [uv](https://docs.astral.sh/uv/)，并使用 Python 3.11+。
 
+> **💡 关于 Reranker API Key 配置（可选但推荐）**
+> 项目开启了基于硅基流动 API 的 Reranker 精排功能以提升检索精度。你需要去 [硅基流动官网](https://cloud.siliconflow.cn/) 免费申请一个 API Key。
+> **配置方法：**
+> 在 `nexus-kb-server` 目录下创建一个 `.env` 文件，写入：
+> ```env
+> RERANKER_API_KEY=sk-你的APIKey
+> ```
+> *(注：`.env` 文件已被 Git 忽略，不会上传到仓库中。如果你不配置此项，系统将自动跳过精排阶段，不影响基础功能。)*
+
 ```bash
 cd nexus-kb-server
 uv sync --python 3.11

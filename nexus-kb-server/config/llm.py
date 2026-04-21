@@ -1,4 +1,4 @@
-from openai import OpenAI
+import os
 from langchain_community.llms import Ollama
 
 # 后面调整为可以配置的内容
@@ -35,7 +35,14 @@ EMBEDDING_PROVIDER = 'default' # 'default' # wenkb表示自己
 #   'model': OLLAMA_MODEL,
 #   'base_url': OLLAMA_BASE_URL
 # }
-DEFAULT_LLM_ARGUMENTS = None # 客户端不设置默认的大模型参数
+# 默认 LLM 参数兜底：当用户未在“设置/模型设置”中选择首选项时使用。
+# 这样可以保证黑盒链路（上传文档 -> 检索 -> 对话）在全新环境下也能直接跑通。
+DEFAULT_LLM_ARGUMENTS = {
+  'provider': 'ollama',
+  'model': OLLAMA_MODEL,
+  'base_url': OLLAMA_BASE_URL,
+  'api_key': None,
+}
 
 # The embedding model name could be one of the following:
 #   ghuyong/ernie-3.0-nano-zh
@@ -84,7 +91,7 @@ RERANKER_LOCAL_URL = "http://localhost:9997/v1"
 RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
 
 # Reranker API Key（在硅基流动控制台获取，本地部署可留空）
-RERANKER_API_KEY = ""
+RERANKER_API_KEY = os.environ.get("RERANKER_API_KEY", "")
 
 # 精排后返回的 Top N 数量（建议与 TOP_K 保持一致）
 RERANKER_TOP_N = 20
@@ -103,3 +110,10 @@ HYDE_ENABLED = True  # 是否启用 HyDE 查询扩展
 # 混合检索配置 
 # ============================================================ 
 HYBRID_SEARCH_ENABLED = True  # 是否启用 BM25 + 向量混合检索
+
+# ============================================================
+# Function Calling / Agent 模式配置
+# ============================================================
+FC_ENABLED = True
+FC_MAX_ROUNDS = 5
+AGENT_MODE = False

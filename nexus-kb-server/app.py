@@ -1,4 +1,27 @@
 import asyncio
+import os
+from pathlib import Path
+
+def _load_dotenv() -> None:
+  """Load `nexus-kb-server/.env` into process env (without extra dependencies)."""
+  env_path = Path(__file__).resolve().parent / ".env"
+  if not env_path.exists():
+    return
+  try:
+    for raw in env_path.read_text(encoding="utf-8").splitlines():
+      line = raw.strip()
+      if not line or line.startswith("#") or "=" not in line:
+        continue
+      key, value = line.split("=", 1)
+      key = key.strip()
+      value = value.strip().strip('"').strip("'")
+      if key and key not in os.environ:
+        os.environ[key] = value
+  except Exception:
+    # Do not block startup if .env parsing fails
+    return
+
+_load_dotenv()
 import uvicorn
 from fastapi import FastAPI, Request, APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
@@ -12,6 +35,7 @@ from server.api.knb.SearchApi import SearchApi
 from server.api.doc.DocsetInfoApi import DocsetInfoApi
 from contextlib import asynccontextmanager
 from server.core.scheduler.Scheduler import datasetToVectorQueueJob, datasetEnhanceQueueJob
+from server.core.tools.tool_registry import register_default_tools
 from server.utils.websocketutils import WebsocketManager
 from server.exception.exception import golbal_exception_handlers, global_exceptions_middleware
 from config.common import DEFAULT_STATIC_DIR_NAME, DEFAULT_DOCUMENT_DIR_NAME
@@ -44,6 +68,7 @@ DatasetApi(app, manager)
 ChatApi(app, manager)
 SearchApi(app, manager)
 DocsetInfoApi(app)
+register_default_tools()
 
 @router.websocket('/ws/knb/{client_id}')
 async def websocket_serve(client_id: str, websocket: WebSocket):

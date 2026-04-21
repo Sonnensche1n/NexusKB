@@ -6,7 +6,8 @@ from sqlalchemy import select, delete
 from server.model.orm_knb import ChatInfo, ChatMesg
 from server.model.entity_knb import ChatInfo as ChatInfoEntity, ChatMesg as ChatMesgEntity, ReposSetting as ReposSettingEntity
 from datetime import datetime
-from server.core.tools.ask_to_llm import ask_to_llm_stream
+from config.llm import FC_ENABLED
+from server.core.tools.ask_to_llm import ask_to_llm_stream, ask_to_llm_stream_with_fc
 from server.utils.websocketutils import WebsocketManager
 from server.core.tools.message_tools import message_entity_to_json
 from server.core.knb.ReposService import ReposService
@@ -124,7 +125,8 @@ class ChatApi(BaseApi):
       setting = self.reposService.get_repos_setting(reposId)
       def event_generator():
         yield message_entity_to_json(childMesg.to_dict())
-        for message in ask_to_llm_stream(setting=setting, chatMesg=childMesg, question=mesg.mesgCntnt, userId=userId, chatHistory=history):
+        stream_fn = ask_to_llm_stream_with_fc if FC_ENABLED else ask_to_llm_stream
+        for message in stream_fn(setting=setting, chatMesg=childMesg, question=mesg.mesgCntnt, userId=userId, chatHistory=history):
           yield message
       return EventSourceResponse(event_generator())
     # 新增对话消息
@@ -152,7 +154,8 @@ class ChatApi(BaseApi):
       setting = self.reposService.get_repos_setting(reposId)
       def event_generator():
         yield message_entity_to_json(childMesg.to_dict())
-        for message in ask_to_llm_stream(setting=setting, chatMesg=childMesg, question=mesg.mesgCntnt, userId=userId, chatHistory=history):
+        stream_fn = ask_to_llm_stream_with_fc if FC_ENABLED else ask_to_llm_stream
+        for message in stream_fn(setting=setting, chatMesg=childMesg, question=mesg.mesgCntnt, userId=userId, chatHistory=history):
           yield message
       return EventSourceResponse(event_generator())
     

@@ -1,4 +1,5 @@
 from logger import logger
+from openai import OpenAI
 from langchain_openai import ChatOpenAI
 from langchain_community.llms import Ollama
 from langchain_community.embeddings import HuggingFaceEmbeddings, OllamaEmbeddings, OpenAIEmbeddings
@@ -29,15 +30,46 @@ class LLMClient:
     self.model = self.args['model']
     self.provider = self.args['provider']
     self.client = self.get_llm_client()
+    # OpenAI 兼容客户端用于 Function Calling / messages 场景
+    self.openai_client = self._create_openai_client()
   def get_llm_client(self):
     if self.provider == 'ollama':
       return Ollama(model=self.model, base_url=self.args.get('base_url', None), temperature=self.temperature)
     else:
       return ChatOpenAI(model=self.model, base_url=self.args.get('base_url', None), api_key=self.args.get('api_key', None), temperature=self.temperature)
+  def _create_openai_client(self):
+    """创建 OpenAI 兼容客户端，用于 Function Calling 场景。"""
+    base_url = self.args.get('base_url', None)
+    if self.provider == 'ollama':
+      if base_url is None or base_url == '':
+        base_url = 'http://127.0.0.1:11434'
+      if not base_url.endswith('/v1'):
+        base_url = base_url.rstrip('/') + '/v1'
+      return OpenAI(base_url=base_url, api_key='ollama')
+    return OpenAI(base_url=base_url, api_key=self.args.get('api_key', None))
   def invoke(self, prompts: str):
     return self.client.invoke(prompts)
   def stream(self, prompts: str):
     return self.client.stream(input=prompts)
+  def chat_with_tools(self, messages: list, tools: list = None, tool_choice: str = "auto"):
+    """支持 Function Calling 的非流式对话。"""
+    kwargs = {
+      "model": self.model,
+      "messages": messages,
+      "temperature": self.temperature,
+    }
+    if tools:
+      kwargs["tools"] = tools
+      kwargs["tool_choice"] = tool_choice
+    return self.openai_client.chat.completions.create(**kwargs)
+  def chat_stream(self, messages: list):
+    """基于 messages 列表的流式输出。"""
+    return self.openai_client.chat.completions.create(
+      model=self.model,
+      messages=messages,
+      temperature=self.temperature,
+      stream=True,
+    )
 
 class EmbeddingFunction:
   def __init__(self, userId: str = None, modlId: str = None):

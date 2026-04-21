@@ -31,3 +31,11 @@ def message_error_to_json(error) -> str:
     'type': 'chat_message_error', 'data': error
   }
   return json.dumps(message, ensure_ascii=False)
+
+def message_tool_call_to_json(tool_name: str, status: str) -> str:
+  message = {
+    'type': 'chat_tool_call', 'data': {
+      'tool': tool_name, 'status': status
+    }
+  }
+  return json.dumps(message, ensure_ascii=False)

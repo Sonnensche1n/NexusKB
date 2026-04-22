@@ -37,8 +37,7 @@ async def global_exceptions_middleware(request: Request, call_next):
   try:
     return await call_next(request)
   except Exception as e:
-    logger.error(f'内部错误：{e}')
-    traceback.print_exc()
+    logger.exception(f'内部错误：{e}')
     return JSONResponse(
       status_code=HTTP_500_INTERNAL_SERVER_ERROR,
       content={

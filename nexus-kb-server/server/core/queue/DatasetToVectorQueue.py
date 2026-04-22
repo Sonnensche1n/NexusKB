@@ -38,8 +38,7 @@ def consumer():
     try:
       start_to_build_dataset_index(dataset)
     except Exception as e:
-      logger.info(f"Consume Failed {dataset['dtsetNm']}")
-      traceback.print_exc()
+      logger.exception(f"Consume Failed {dataset['dtsetNm']}")
       update_status(dtsetId, 'error', DatasetIndexError(dtsetId=dtsetId, idxTyp='index', errInf=str(e))) # type: index, precis, qanswer, triplet
     else:
       logger.info(f"Consumed {dataset['dtsetNm']}")

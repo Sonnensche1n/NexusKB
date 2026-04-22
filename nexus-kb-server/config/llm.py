@@ -69,7 +69,6 @@ LLM_BASE_URLS = {
 
 # ============================================================
 # Reranker 重排序配置
-# 用于对向量检索的粗排结果进行二阶精排，提升上下文相关性
 # ============================================================
 
 # 是否启用 Reranker（设为 False 则完全不影响现有逻辑）
@@ -79,18 +78,15 @@ RERANKER_ENABLED = True
 RERANKER_PROVIDER = "api"
 
 # Reranker API 基础地址
-# 推荐使用硅基流动（免费注册，有免费额度）：https://siliconflow.cn
-# 也可替换为任何 OpenAI 兼容的 Rerank API 地址
 RERANKER_BASE_URL = "https://api.siliconflow.cn/v1"
 
 # 本地 Reranker 服务地址 (当 RERANKER_PROVIDER="local" 时使用)
 RERANKER_LOCAL_URL = "http://localhost:9997/v1"
 
 # Reranker 模型名称
-# BAAI/bge-reranker-v2-m3：北京智源开源，中英文效果优秀，推荐
 RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
 
-# Reranker API Key（在硅基流动控制台获取，本地部署可留空）
+# Reranker API Key（优先从环境变量获取，也可以在 .env 文件中配置）
 RERANKER_API_KEY = os.environ.get("RERANKER_API_KEY", "")
 
 # 精排后返回的 Top N 数量（建议与 TOP_K 保持一致）

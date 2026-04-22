@@ -1,0 +1,25 @@
+services:
+  nexus-server:
+    build:
+      context: ./nexus-kb-server
+      dockerfile: Dockerfile
+    ports:
+      - "16088:16088"
+    volumes:
+      - ./nexus-kb-server/resources/model:/app/resources/model
+      - ./data/database:/app/resources/database
+      - ./data/vector_store:/app/resources/vector_store
+      - ./data/documents:/app/resources/documents
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  nexus-client:
+    build:
+      context: ./nexus-kb-client
+      dockerfile: Dockerfile
+    ports:
+      - "11420:80"
+    depends_on:
+      - nexus-server
+    restart: unless-stopped

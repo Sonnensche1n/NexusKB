@@ -217,7 +217,8 @@
             message = JSON.parse(event)
           } catch (e) {
             console.error(e)
-            message = eval("(" + event + ")")
+            // 后端 SSE 事件应为严格 JSON；禁止 eval 以避免安全风险
+            return
           }
           
           let type = message.type || ''
@@ -241,8 +242,21 @@
             }
           } else if (type === 'chat_message_quote') {
             childMesg.value['quotes'] = message.data['quotes']
+            childMesg.value['toolStatus'] = ''
+          } else if (type === 'chat_tool_call') {
+            let data = message.data || {}
+            let tool = data.tool || 'tool'
+            let status = data.status || ''
+            if (status === 'running') {
+              childMesg.value['toolStatus'] = `正在调用 ${tool}...`
+            } else if (status === 'done') {
+              childMesg.value['toolStatus'] = `${tool} 已完成`
+            } else {
+              childMesg.value['toolStatus'] = ''
+            }
           } else if (type === 'chat_message_error') {
             childMesg.value['error'] = message.data || '未知错误，暂时无法回答'
+            childMesg.value['toolStatus'] = ''
           }
         } catch (error) {
           console.error(error)

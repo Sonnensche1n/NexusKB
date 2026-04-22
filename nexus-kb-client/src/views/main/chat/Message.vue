@@ -23,6 +23,11 @@
     padding: 7px;
     border-radius: 5px;
     overflow: auto;
+    .tool-status {
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--text-color-3);
+    }
     .thinking {
       @keyframes text-up-down {
         0% {
@@ -152,6 +157,7 @@
         <span style="--i:8">·</span>
       </p>
       <template v-else>
+        <div v-if="toolStatus" class="tool-status">{{ toolStatus }}</div>
         <div v-if="message.crtRole === 'usr'" v-html="message.mesgCntnt?.replace(/\n+/g, '<br>')"></div>
         <message-view v-else :content="message.mesgCntnt" />
         <div class="quote" v-if="(message['quotes'] || []).length > 0">
@@ -234,6 +240,9 @@
       const error = computed(() => {
         return props.message['error']
       })
+      const toolStatus = computed(() => {
+        return props.message['toolStatus'] || ''
+      })
       const copyToClipboard = async () => {
         try {
           await navigator.clipboard.writeText(props.message.mesgCntnt?.replace(/<br>/g, '\n'))
@@ -301,7 +310,7 @@
       })
 
       return {
-        quoteFiles, thinking, error, speaking,
+        quoteFiles, thinking, error, toolStatus, speaking,
         copyToClipboard, deleteMessage, speakOn, speakOff, regenMessage, editMessage, onQuoteClick
       }
     }
